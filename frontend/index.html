@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BetonLab — Laboratuvar Takip Sistemi</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="/static/css/main.css">
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sidebar-brand">
+    <div class="brand-icon">⬡</div>
+    <div class="brand-text">
+      <span class="brand-name">BetonLab</span>
+      <span class="brand-sub">TS EN 13515</span>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="#" class="nav-item active" data-page="dashboard">
+      <span class="nav-icon">◈</span><span>Dashboard</span>
+    </a>
+    <a href="#" class="nav-item" data-page="sieve">
+      <span class="nav-icon">⊞</span><span>Elek Analizi</span>
+    </a>
+    <a href="#" class="nav-item" data-page="pollution">
+      <span class="nav-icon">◉</span><span>Kirlilik Testi</span>
+    </a>
+    <a href="#" class="nav-item" data-page="recipes">
+      <span class="nav-icon">⊟</span><span>Beton Reçetesi</span>
+    </a>
+    <a href="#" class="nav-item" data-page="report">
+      <span class="nav-icon">⊕</span><span>Haftalık Rapor</span>
+    </a>
+    <a href="#" class="nav-item" data-page="trends">
+      <span class="nav-icon">⊘</span><span>Trend Grafikleri</span>
+    </a>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="std-badge">TS EN 13515</div>
+    <div class="std-badge">TS EN 12620</div>
+    <div class="teknobeton">TeknoBeton Danışmanlık</div>
+  </div>
+</aside>
+
+<div class="main-wrapper">
+  <header class="topbar">
+    <div class="topbar-left">
+      <button class="menu-toggle" id="menuToggle">☰</button>
+      <h1 class="page-title" id="pageTitle">Dashboard</h1>
+    </div>
+    <div class="topbar-right">
+      <div class="clock" id="clock">--:--:--</div>
+      <div class="status-indicator" id="apiStatus">
+        <span class="status-dot"></span>API
+      </div>
+    </div>
+  </header>
+
+  <main class="content" id="mainContent">
+    <!-- Dashboard -->
+    <section id="page-dashboard" class="page active">
+      <div class="stats-grid">
+        <div class="stat-card" id="statSieve">
+          <div class="stat-label">Elek Analizleri</div>
+          <div class="stat-value" id="statSieveVal">—</div>
+          <div class="stat-sub" id="statSieveWeek">Bu hafta: —</div>
+        </div>
+        <div class="stat-card" id="statPollution">
+          <div class="stat-label">Kirlilik Testleri</div>
+          <div class="stat-value" id="statPollutionVal">—</div>
+          <div class="stat-sub" id="statPollutionWeek">Bu hafta: —</div>
+        </div>
+        <div class="stat-card" id="statRecipes">
+          <div class="stat-label">Aktif Reçeteler</div>
+          <div class="stat-value" id="statRecipesVal">—</div>
+          <div class="stat-sub">Beton sınıfları</div>
+        </div>
+        <div class="stat-card warning" id="statNonConform">
+          <div class="stat-label">Uygunsuz Kayıtlar</div>
+          <div class="stat-value" id="statNonConformVal">—</div>
+          <div class="stat-sub" id="statNonConformSub">Elek + Kirlilik</div>
+        </div>
+      </div>
+
+      <div class="dashboard-grid">
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Son Elek Analizleri</span>
+            <button class="btn-sm" onclick="showPage('sieve')">Tümü →</button>
+          </div>
+          <div class="card-body" id="recentSieve">Yükleniyor…</div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Son Kirlilik Testleri</span>
+            <button class="btn-sm" onclick="showPage('pollution')">Tümü →</button>
+          </div>
+          <div class="card-body" id="recentPollution">Yükleniyor…</div>
+        </div>
+      </div>
+
+      <div class="card mt-4">
+        <div class="card-header">
+          <span class="card-title">Standart Uyum Özeti</span>
+          <span class="badge-std">TS EN 13515</span>
+        </div>
+        <div class="card-body">
+          <div class="compliance-grid" id="complianceGrid">Yükleniyor…</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Elek Analizi -->
+    <section id="page-sieve" class="page">
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="openModal('modalSieve')">+ Yeni Elek Analizi</button>
+        <div class="filter-bar">
+          <select id="sieveFilterType" onchange="loadSieveList()">
+            <option value="">Tüm Agrega Tipleri</option>
+            <option value="0-2">0-2 mm</option>
+            <option value="0-5">0-5 mm</option>
+            <option value="5-12">5-12 mm</option>
+            <option value="12-22">12-22 mm</option>
+          </select>
+          <input type="date" id="sieveFilterStart" onchange="loadSieveList()" placeholder="Başlangıç">
+          <input type="date" id="sieveFilterEnd" onchange="loadSieveList()" placeholder="Bitiş">
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body p-0">
+          <table class="data-table" id="sieveTable">
+            <thead>
+              <tr>
+                <th>Tarih</th><th>Agrega</th><th>Kaynak</th>
+                <th>Operatör</th><th>Uyum Durumu</th><th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="sieveTableBody">
+              <tr><td colspan="6" class="loading-row">Yükleniyor…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="sievePagination"></div>
+      </div>
+    </section>
+
+    <!-- Kirlilik Testi -->
+    <section id="page-pollution" class="page">
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="openModal('modalPollution')">+ Yeni Kirlilik Testi</button>
+        <div class="filter-bar">
+          <select id="pollFilterType" onchange="loadPollutionList()">
+            <option value="">Tüm Agrega Tipleri</option>
+            <option value="0-2">0-2 mm</option>
+            <option value="0-5">0-5 mm</option>
+            <option value="5-12">5-12 mm</option>
+            <option value="12-22">12-22 mm</option>
+          </select>
+          <input type="date" id="pollFilterStart" onchange="loadPollutionList()">
+          <input type="date" id="pollFilterEnd" onchange="loadPollutionList()">
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-body p-0">
+          <table class="data-table" id="pollutionTable">
+            <thead>
+              <tr>
+                <th>Tarih</th><th>Agrega</th><th>Baypas</th>
+                <th>MB (g/kg)</th><th>Kum Eşd. (%)</th><th>İnce Mad. (%)</th>
+                <th>Durum</th><th>İşlem</th>
+              </tr>
+            </thead>
+            <tbody id="pollutionTableBody">
+              <tr><td colspan="8" class="loading-row">Yükleniyor…</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="pagination" id="pollutionPagination"></div>
+      </div>
+    </section>
+
+    <!-- Beton Reçetesi -->
+    <section id="page-recipes" class="page">
+      <div class="page-actions">
+        <button class="btn btn-primary" onclick="openModal('modalRecipe')">+ Yeni Reçete</button>
+        <div class="filter-bar">
+          <select id="recipeFilterClass" onchange="loadRecipeList()">
+            <option value="">Tüm Sınıflar</option>
+            <option value="C16/20">C16/20</option>
+            <option value="C20/25">C20/25</option>
+            <option value="C25/30">C25/30</option>
+            <option value="C30/37">C30/37</option>
+            <option value="C35/45">C35/45</option>
+            <option value="C40/50">C40/50</option>
+          </select>
+        </div>
+      </div>
+      <div class="recipes-grid" id="recipesGrid">Yükleniyor…</div>
+    </section>
+
+    <!-- Haftalık Rapor -->
+    <section id="page-report" class="page">
+      <div class="page-actions">
+        <div class="filter-bar">
+          <label>Hafta Başlangıcı:</label>
+          <input type="date" id="reportWeekStart">
+          <button class="btn btn-primary" onclick="generateReport()">Rapor Oluştur</button>
+          <button class="btn btn-secondary" onclick="saveReport()">Kaydet</button>
+        </div>
+      </div>
+      <div id="reportContainer">
+        <div class="empty-state">
+          <div class="empty-icon">⊕</div>
+          <p>Hafta başlangıç tarihi seçin ve "Rapor Oluştur" butonuna tıklayın</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Trend Grafikleri -->
+    <section id="page-trends" class="page">
+      <div class="page-actions">
+        <div class="filter-bar">
+          <label>Agrega Tipi:</label>
+          <select id="trendAggType" onchange="loadTrends()">
+            <option value="0-5">0-5 mm</option>
+            <option value="0-2">0-2 mm</option>
+            <option value="5-12">5-12 mm</option>
+            <option value="12-22">12-22 mm</option>
+          </select>
+          <label>Son:</label>
+          <select id="trendDays" onchange="loadTrends()">
+            <option value="30">30 Gün</option>
+            <option value="60">60 Gün</option>
+            <option value="90">90 Gün</option>
+          </select>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Tane Büyüklüğü Trendi</span></div>
+        <div class="card-body">
+          <canvas id="trendChart" height="100"></canvas>
+        </div>
+      </div>
+      <div class="card mt-4">
+        <div class="card-header"><span class="card-title">Kirlilik Parametreleri Trendi</span></div>
+        <div class="card-body">
+          <canvas id="pollutionChart" height="100"></canvas>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- Modal: Elek Analizi -->
+<div class="modal-overlay" id="modalSieve">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2>Elek Analizi Giriş</h2>
+      <button class="modal-close" onclick="closeModal('modalSieve')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Test Tarihi *</label>
+          <input type="date" id="siTestDate" required>
+        </div>
+        <div class="form-group">
+          <label>Agrega Tipi *</label>
+          <select id="siAggType" onchange="updateSieveInputs()" required>
+            <option value="">Seçin…</option>
+            <option value="0-2">0-2 mm Doğal Kum</option>
+            <option value="0-5">0-5 mm Kırma Kum</option>
+            <option value="5-12">5-12 mm Çakıl/Kırmataş</option>
+            <option value="12-22">12-22 mm İri Agrega</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Numune Ağırlığı (g)</label>
+          <input type="number" id="siWeight" placeholder="1000">
+        </div>
+        <div class="form-group">
+          <label>Operatör</label>
+          <input type="text" id="siOperator" placeholder="Ad Soyad">
+        </div>
+        <div class="form-group">
+          <label>Kaynak/Ocak</label>
+          <input type="text" id="siSource" placeholder="Taş ocağı adı">
+        </div>
+      </div>
+      <div class="sieve-inputs-section">
+        <h3 class="section-title">Elek Sonuçları — Elekten Geçen (%)</h3>
+        <div id="sieveInputsGrid" class="sieve-grid">
+          <p class="hint">Önce agrega tipini seçin</p>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Notlar</label>
+        <textarea id="siNotes" rows="2" placeholder="Ek notlar…"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalSieve')">İptal</button>
+      <button class="btn btn-primary" onclick="saveSieveAnalysis()">Kaydet ve Değerlendir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Kirlilik Testi -->
+<div class="modal-overlay" id="modalPollution">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2>Kirlilik Testi Giriş</h2>
+      <button class="modal-close" onclick="closeModal('modalPollution')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Test Tarihi *</label>
+          <input type="date" id="ptTestDate" required>
+        </div>
+        <div class="form-group">
+          <label>Agrega Tipi *</label>
+          <select id="ptAggType" required>
+            <option value="">Seçin…</option>
+            <option value="0-2">0-2 mm</option>
+            <option value="0-5">0-5 mm</option>
+            <option value="5-12">5-12 mm</option>
+            <option value="12-22">12-22 mm</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Operatör</label>
+          <input type="text" id="ptOperator">
+        </div>
+        <div class="form-group">
+          <label>Kaynak/Ocak</label>
+          <input type="text" id="ptSource">
+        </div>
+      </div>
+
+      <h3 class="section-title">Saha Gözlemleri</h3>
+      <div class="checkbox-grid">
+        <label class="checkbox-item critical">
+          <input type="checkbox" id="ptBypass">
+          <span>⚠ Baypas AÇIK</span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" id="ptWaterDirty">
+          <span>Yıkama Suyu Kirli</span>
+        </label>
+        <label class="checkbox-item">
+          <input type="checkbox" id="ptWaterInsuf">
+          <span>Yıkama Suyu Yetersiz</span>
+        </label>
+      </div>
+
+      <h3 class="section-title">Ölçüm Değerleri</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Metilen Mavisi (g/kg)</label>
+          <input type="number" step="0.01" id="ptMB" placeholder="0.00">
+        </div>
+        <div class="form-group">
+          <label>Kum Eşdeğeri (%)</label>
+          <input type="number" step="0.1" id="ptSE" placeholder="—">
+        </div>
+        <div class="form-group">
+          <label>İnce Madde İçeriği (%)</label>
+          <input type="number" step="0.1" id="ptFine" placeholder="—">
+        </div>
+        <div class="form-group">
+          <label>Kil Topağı (%)</label>
+          <input type="number" step="0.01" id="ptClay" placeholder="—">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Notlar</label>
+        <textarea id="ptNotes" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalPollution')">İptal</button>
+      <button class="btn btn-primary" onclick="savePollutionTest()">Kaydet ve Değerlendir</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Beton Reçetesi -->
+<div class="modal-overlay" id="modalRecipe">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2>Beton Reçetesi Giriş</h2>
+      <button class="modal-close" onclick="closeModal('modalRecipe')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Reçete Kodu *</label>
+          <input type="text" id="rcCode" placeholder="C25/30-S3-001">
+        </div>
+        <div class="form-group">
+          <label>Beton Sınıfı *</label>
+          <select id="rcClass">
+            <option>C16/20</option><option>C20/25</option><option selected>C25/30</option>
+            <option>C30/37</option><option>C35/45</option><option>C40/50</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Çimento Tipi</label>
+          <input type="text" id="rcCementType" placeholder="CEM I 42.5R">
+        </div>
+        <div class="form-group">
+          <label>Çimento (kg/m³)</label>
+          <input type="number" id="rcCement" placeholder="340">
+        </div>
+        <div class="form-group">
+          <label>S/Ç Oranı</label>
+          <input type="number" step="0.01" id="rcWC" placeholder="0.48">
+        </div>
+        <div class="form-group">
+          <label>Kıvam Sınıfı</label>
+          <select id="rcConsistency">
+            <option>S1</option><option>S2</option><option selected>S3</option>
+            <option>S4</option><option>S5</option>
+          </select>
+        </div>
+      </div>
+
+      <h3 class="section-title">Agrega Bileşimi (kg/m³)</h3>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>0-2 mm</label>
+          <input type="number" id="rcAgg02" value="0">
+        </div>
+        <div class="form-group">
+          <label>0-5 mm</label>
+          <input type="number" id="rcAgg05" value="680">
+        </div>
+        <div class="form-group">
+          <label>5-12 mm</label>
+          <input type="number" id="rcAgg512" value="420">
+        </div>
+        <div class="form-group">
+          <label>12-22 mm</label>
+          <input type="number" id="rcAgg1222" value="580">
+        </div>
+        <div class="form-group">
+          <label>0-31.5 mm</label>
+          <input type="number" id="rcAgg0315" value="0">
+        </div>
+        <div class="form-group">
+          <label>Katkı Maddesi (kg/m³)</label>
+          <input type="number" step="0.1" id="rcAdmixture" value="0">
+        </div>
+      </div>
+
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Hedef Çökme (mm)</label>
+          <input type="number" id="rcSlump" placeholder="160">
+        </div>
+        <div class="form-group">
+          <label>Hedef Dayanım (MPa)</label>
+          <input type="number" id="rcStrength" placeholder="30">
+        </div>
+        <div class="form-group">
+          <label>Maruziyet Sınıfı</label>
+          <input type="text" id="rcExposure" placeholder="XC2">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Notlar</label>
+        <textarea id="rcNotes" rows="2"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalRecipe')">İptal</button>
+      <button class="btn btn-primary" onclick="saveRecipe()">Kaydet</button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Kayıt Detay -->
+<div class="modal-overlay" id="modalDetail">
+  <div class="modal modal-lg">
+    <div class="modal-header">
+      <h2 id="detailTitle">Kayıt Detayı</h2>
+      <button class="modal-close" onclick="closeModal('modalDetail')">✕</button>
+    </div>
+    <div class="modal-body" id="detailContent"></div>
+    <div class="modal-footer">
+      <button class="btn btn-secondary" onclick="closeModal('modalDetail')">Kapat</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast-container" id="toastContainer"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="/static/js/app.js"></script>
+</body>
+</html>
