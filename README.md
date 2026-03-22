@@ -148,6 +148,38 @@ Bu uygulama Progressive Web App (PWA) olarak kullanılabilir:
 
 ---
 
+## Railway Ucretsiz Paket Kurulumu
+
+Bu repo Railway'e dogrudan deploy edilebilir. `railway.json` dosyasi ile baslangic komutu hazir gelir.
+
+### 1. Railway'e Repo Bagla
+1. Railway dashboard -> New Project -> Deploy from GitHub Repo
+2. Bu repoyu secin
+
+### 2. Ortam Degiskenleri
+Railway projesinde su degiskenleri ekleyin:
+
+- `BETONLAB_DB_PATH=/data/betonlab.db` (onerilir)
+
+Not: SQLite dosyasinin redeploy sonrasi silinmemesi icin bir Volume olusturup `/data` yoluna mount etmeniz gerekir.
+Volume baglamazsaniz uygulama calisir, ancak veriler kalici olmaz.
+
+### 3. Deploy ve Calisma
+- Railway otomatik olarak `uvicorn backend.main:app --host 0.0.0.0 --port $PORT` komutuyla baslar.
+- Uygulama acildiginda:
+	- Ana arayuz: `/`
+	- API docs: `/docs`
+	- Healthcheck: `/api/health`
+
+### 4. Opsiyonel Ilk Veri
+Ilk demo verisi icin Railway Shell veya lokal ortamda bir kez su komutu calistirabilirsiniz:
+
+```bash
+python backend/seed_data.py
+```
+
+---
+
 ## Lisans
 
 MIT Lisansı — Ticari kullanım serbesttir.

@@ -9,13 +9,23 @@ from typing import Optional, List, Dict, Any
 from contextlib import contextmanager
 
 
-DB_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "betonlab.db")
+def _resolve_db_path() -> str:
+    # Allow overriding the SQLite location for cloud platforms (e.g. Railway volume mount).
+    env_db_path = os.getenv("BETONLAB_DB_PATH")
+    if env_db_path:
+        return os.path.abspath(env_db_path)
+    return os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "data", "betonlab.db")
+
+
+DB_PATH = _resolve_db_path()
 
 
 class DatabaseManager:
     def __init__(self, db_path: str = DB_PATH):
         self.db_path = db_path
-        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        db_dir = os.path.dirname(os.path.abspath(db_path))
+        if db_dir:
+            os.makedirs(db_dir, exist_ok=True)
         self._init_db()
 
     @contextmanager
