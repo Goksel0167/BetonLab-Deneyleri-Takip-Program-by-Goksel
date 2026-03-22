@@ -374,7 +374,15 @@ class ReportGenerator:
 
     def _summarize_sieve(self, data: list) -> dict:
         if not data:
-            return {"count": 0, "conforming": 0, "non_conforming": 0, "by_type": {}}
+            return {
+                "count": 0,
+                "conforming": 0,
+                "warning": 0,
+                "non_conforming": 0,
+                "compliance_rate": 0,
+                "has_warnings": False,
+                "by_type": {}
+            }
 
         by_type = {}
         conforming = sum(1 for d in data if d.get("status") == "UYGUN")
@@ -406,7 +414,17 @@ class ReportGenerator:
 
     def _summarize_pollution(self, data: list) -> dict:
         if not data:
-            return {"count": 0, "conforming": 0, "non_conforming": 0, "by_type": {}}
+            return {
+                "count": 0,
+                "conforming": 0,
+                "warning": 0,
+                "non_conforming": 0,
+                "compliance_rate": 0,
+                "bypass_issues": 0,
+                "washing_issues": 0,
+                "has_warnings": False,
+                "by_type": {}
+            }
 
         by_type = {}
         conforming = sum(1 for d in data if d.get("status") == "UYGUN")

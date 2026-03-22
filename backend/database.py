@@ -305,7 +305,7 @@ class DatabaseManager:
 
     def get_concrete_recipe_by_id(self, record_id: int):
         with self._get_conn() as conn:
-            row = conn.execute("SELECT * FROM concrete_recipes WHERE id=?", (record_id,)).fetchone()
+            row = conn.execute("SELECT * FROM concrete_recipes WHERE id=? AND is_active=1", (record_id,)).fetchone()
             return dict(row) if row else None
 
     def count_concrete_recipes(self, concrete_class=None):
@@ -338,6 +338,18 @@ class DatabaseManager:
                 data.consistency_class, data.exposure_class, data.notes,
                 record_id
             ))
+
+    def delete_concrete_recipe(self, record_id: int) -> bool:
+        with self._get_conn() as conn:
+            cur = conn.execute(
+                """
+                UPDATE concrete_recipes
+                SET is_active=0, updated_at=datetime('now','localtime')
+                WHERE id=? AND is_active=1
+                """,
+                (record_id,)
+            )
+            return cur.rowcount > 0
 
     # ─── HAFTALIK RAPOR ───────────────────────────────────────────────────────
 

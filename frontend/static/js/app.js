@@ -409,6 +409,60 @@ async function savePollutionTest() {
 }
 
 // ─── RECIPES ──────────────────────────────────────────────────
+let recipeEditId = null;
+
+function setRecipeModalMode(isEdit) {
+  const title = document.getElementById('recipeModalTitle');
+  const saveBtn = document.getElementById('recipeSaveBtn');
+  if (title) title.textContent = isEdit ? 'Beton Reçetesi Düzenle' : 'Beton Reçetesi Giriş';
+  if (saveBtn) saveBtn.textContent = isEdit ? 'Güncelle' : 'Kaydet';
+}
+
+function resetRecipeForm() {
+  document.getElementById('rcCode').value = '';
+  document.getElementById('rcClass').value = 'C25/30';
+  document.getElementById('rcCementType').value = '';
+  document.getElementById('rcCement').value = '';
+  document.getElementById('rcWC').value = '';
+  document.getElementById('rcConsistency').value = 'S3';
+  document.getElementById('rcAgg02').value = '0';
+  document.getElementById('rcAgg05').value = '680';
+  document.getElementById('rcAgg512').value = '420';
+  document.getElementById('rcAgg1222').value = '580';
+  document.getElementById('rcAgg0315').value = '0';
+  document.getElementById('rcAdmixture').value = '0';
+  document.getElementById('rcSlump').value = '';
+  document.getElementById('rcStrength').value = '';
+  document.getElementById('rcExposure').value = '';
+  document.getElementById('rcNotes').value = '';
+}
+
+function fillRecipeForm(rec) {
+  document.getElementById('rcCode').value = rec.recipe_code || '';
+  document.getElementById('rcClass').value = rec.concrete_class || 'C25/30';
+  document.getElementById('rcCementType').value = rec.cement_type || '';
+  document.getElementById('rcCement').value = rec.cement_content ?? '';
+  document.getElementById('rcWC').value = rec.water_cement_ratio ?? '';
+  document.getElementById('rcConsistency').value = rec.consistency_class || 'S3';
+  document.getElementById('rcAgg02').value = rec.aggregate_0_2 ?? 0;
+  document.getElementById('rcAgg05').value = rec.aggregate_0_5 ?? 0;
+  document.getElementById('rcAgg512').value = rec.aggregate_5_12 ?? 0;
+  document.getElementById('rcAgg1222').value = rec.aggregate_12_22 ?? 0;
+  document.getElementById('rcAgg0315').value = rec.aggregate_0_315 ?? 0;
+  document.getElementById('rcAdmixture').value = rec.admixture_content ?? 0;
+  document.getElementById('rcSlump').value = rec.target_slump ?? '';
+  document.getElementById('rcStrength').value = rec.target_strength ?? '';
+  document.getElementById('rcExposure').value = rec.exposure_class || '';
+  document.getElementById('rcNotes').value = rec.notes || '';
+}
+
+function openRecipeModalForCreate() {
+  recipeEditId = null;
+  setRecipeModalMode(false);
+  resetRecipeForm();
+  openModal('modalRecipe');
+}
+
 async function loadRecipeList() {
   const cls = document.getElementById('recipeFilterClass').value;
   let url = `${API}/api/concrete-recipes?limit=100`;
@@ -439,10 +493,40 @@ async function loadRecipeList() {
           <div class="recipe-row"><span class="label">Katkı</span><span class="value">${rec.admixture_content || 0} kg/m³</span></div>
           <div class="recipe-row"><span class="label">Hedef f'c</span><span class="value">${rec.target_strength || '—'} MPa</span></div>
           <div class="recipe-row"><span class="label">Kıvam</span><span class="value">${rec.consistency_class || '—'} / ${rec.target_slump || '—'} mm</span></div>
+          <div class="recipe-actions">
+            <button class="btn-sm" onclick="editRecipe(${rec.id})">Düzenle</button>
+            <button class="btn-sm" style="color:var(--red);border-color:rgba(239,68,68,.35)" onclick="deleteRecipe(${rec.id})">Sil</button>
+          </div>
         </div>
       </div>
     `).join('');
   } catch { toast('Reçete listesi yüklenemedi', 'error'); }
+}
+
+async function editRecipe(id) {
+  try {
+    const r = await fetch(`${API}/api/concrete-recipes/${id}`);
+    if (!r.ok) throw new Error('not-found');
+    const rec = await r.json();
+    recipeEditId = id;
+    setRecipeModalMode(true);
+    fillRecipeForm(rec);
+    openModal('modalRecipe');
+  } catch {
+    toast('Reçete detayı alınamadı', 'error');
+  }
+}
+
+async function deleteRecipe(id) {
+  if (!confirm('Bu reçete silinsin mi?')) return;
+  try {
+    const r = await fetch(`${API}/api/concrete-recipes/${id}`, { method: 'DELETE' });
+    if (!r.ok) throw new Error('delete-failed');
+    toast('Reçete silindi', 'success');
+    loadRecipeList();
+  } catch {
+    toast('Silme başarısız', 'error');
+  }
 }
 
 async function saveRecipe() {
@@ -467,11 +551,19 @@ async function saveRecipe() {
   };
   if (!body.recipe_code) { toast('Reçete kodu zorunlu', 'error'); return; }
   try {
-    await fetch(`${API}/api/concrete-recipes`, {
-      method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body)
+    const isEdit = recipeEditId !== null;
+    const targetUrl = isEdit ? `${API}/api/concrete-recipes/${recipeEditId}` : `${API}/api/concrete-recipes`;
+    const method = isEdit ? 'PUT' : 'POST';
+
+    await fetch(targetUrl, {
+      method,
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body)
     });
+    recipeEditId = null;
+    setRecipeModalMode(false);
     closeModal('modalRecipe');
-    toast('Reçete kaydedildi', 'success');
+    toast(isEdit ? 'Reçete güncellendi' : 'Reçete kaydedildi', 'success');
     loadRecipeList();
   } catch { toast('Kayıt başarısız', 'error'); }
 }
@@ -582,6 +674,120 @@ async function saveReport() {
     await fetch(`${API}/api/reports/weekly/save?week_start=${weekStart}`, { method: 'POST' });
     toast('Rapor kaydedildi', 'success');
   } catch { toast('Kayıt başarısız', 'error'); }
+}
+
+function printWeeklyReport() {
+  const container = document.getElementById('reportContainer');
+  if (!container || container.querySelector('.empty-state')) {
+    toast('Önce rapor oluşturun', 'warning');
+    return;
+  }
+
+  const printWindow = window.open('', '_blank', 'width=1024,height=768');
+  if (!printWindow) {
+    toast('Yazdırma penceresi açılamadı. Tarayıcı popup engeli olabilir.', 'error');
+    return;
+  }
+
+  const reportHtml = container.innerHTML;
+  const weekStart = document.getElementById('reportWeekStart')?.value || '';
+
+  printWindow.document.write(`
+    <!DOCTYPE html>
+    <html lang="tr">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Haftalik Rapor ${weekStart}</title>
+      <style>
+        body {
+          margin: 24px;
+          font-family: Arial, sans-serif;
+          color: #0f172a;
+          background: #ffffff;
+          line-height: 1.4;
+        }
+        .report-header, .report-section, .card {
+          border: 1px solid #d1d5db;
+          border-radius: 6px;
+          margin-bottom: 16px;
+          overflow: hidden;
+          page-break-inside: avoid;
+        }
+        .report-header {
+          padding: 16px;
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          gap: 12px;
+        }
+        .report-title { font-size: 20px; font-weight: 700; margin-bottom: 6px; }
+        .report-subtitle { font-size: 12px; color: #475569; }
+        .report-status-badge {
+          font-size: 12px;
+          font-weight: 700;
+          padding: 6px 12px;
+          border-radius: 4px;
+          white-space: nowrap;
+        }
+        .report-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 14px;
+          margin-bottom: 16px;
+        }
+        .report-section-header, .card-header {
+          padding: 10px 14px;
+          font-size: 12px;
+          font-weight: 700;
+          text-transform: uppercase;
+          letter-spacing: .04em;
+          background: #f8fafc;
+          border-bottom: 1px solid #d1d5db;
+        }
+        .report-section-body, .card-body { padding: 10px 14px; }
+        .report-stat {
+          display: flex;
+          justify-content: space-between;
+          gap: 12px;
+          padding: 6px 0;
+          border-bottom: 1px solid #e5e7eb;
+          font-size: 13px;
+        }
+        .report-stat:last-child { border-bottom: none; }
+        .r-label { color: #475569; }
+        .r-value { font-weight: 700; }
+        .nonconform-item, .recommendation-item {
+          border: 1px solid #d1d5db;
+          border-left: 3px solid #64748b;
+          border-radius: 4px;
+          padding: 8px 10px;
+          margin-bottom: 8px;
+          font-size: 13px;
+        }
+        .nc-header { font-weight: 700; margin-bottom: 3px; }
+        .nc-detail { font-size: 12px; color: #334155; }
+        .rec-priority { font-size: 11px; font-weight: 700; margin-bottom: 3px; }
+        .card-title { font-weight: 700; }
+
+        @media print {
+          body { margin: 12mm; }
+          .report-grid { grid-template-columns: 1fr 1fr; }
+        }
+      </style>
+    </head>
+    <body>
+      ${reportHtml}
+    </body>
+    </html>
+  `);
+
+  printWindow.document.close();
+  printWindow.focus();
+  setTimeout(() => {
+    printWindow.print();
+    printWindow.close();
+  }, 250);
 }
 
 // ─── TRENDS ───────────────────────────────────────────────────

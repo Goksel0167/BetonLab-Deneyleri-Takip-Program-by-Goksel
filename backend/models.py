@@ -1,9 +1,37 @@
 """
 Veri modelleri - TS EN 13515 & Agrega standartlarına uygun
 """
-from pydantic import BaseModel, Field, validator
+from pydantic import BaseModel, Field, field_validator
 from typing import Optional, Dict, Any
 from datetime import date
+
+
+ALLOWED_CEMENT_TYPES = {
+    "CEM I 42,5 R",
+    "CEM I 52,5 R",
+    "CEM II/A-M 42,5 R",
+    "CEM I 52,5 R Süper Beyaz",
+    "CEM II/B-LL 32,5 R",
+    "CEM II/A-M (V-LL) 52,5 N",
+    "CEM I 42,5 R Superpower",
+    "CEM I 52,5 N",
+    "CEM II/A-M (P-L) 42,5 R",
+}
+
+ALLOWED_CONSISTENCY_CLASSES = {
+    "S1", "S2", "S3", "S4", "S5",
+    "F1", "F2", "F3", "F4", "F5", "F6",
+}
+
+ALLOWED_EXPOSURE_CLASSES = {
+    "X0",
+    "XC1", "XC2", "XC3", "XC4",
+    "XD1", "XD2", "XD3",
+    "XS1", "XS2", "XS3",
+    "XF1", "XF2", "XF3", "XF4",
+    "XA1", "XA2", "XA3",
+    "XM1", "XM2", "XM3",
+}
 
 
 class SieveAnalysisCreate(BaseModel):
@@ -105,6 +133,45 @@ class ConcreteRecipeCreate(BaseModel):
     consistency_class: Optional[str] = Field(None, description="Kıvam sınıfı (S1-S5)")
     exposure_class: Optional[str] = Field(None, description="Maruziyet sınıfı (XC1...)")
     notes: Optional[str] = None
+
+    @field_validator("cement_type", mode="before")
+    @classmethod
+    def validate_cement_type(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, str):
+            v = v.strip()
+            if not v:
+                return None
+        if v not in ALLOWED_CEMENT_TYPES:
+            raise ValueError("Geçersiz çimento tipi")
+        return v
+
+    @field_validator("consistency_class", mode="before")
+    @classmethod
+    def validate_consistency_class(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, str):
+            v = v.strip().upper()
+            if not v:
+                return None
+        if v not in ALLOWED_CONSISTENCY_CLASSES:
+            raise ValueError("Geçersiz kıvam sınıfı")
+        return v
+
+    @field_validator("exposure_class", mode="before")
+    @classmethod
+    def validate_exposure_class(cls, v):
+        if v is None:
+            return None
+        if isinstance(v, str):
+            v = v.strip().upper()
+            if not v:
+                return None
+        if v not in ALLOWED_EXPOSURE_CLASSES:
+            raise ValueError("Geçersiz maruziyet sınıfı")
+        return v
 
     class Config:
         schema_extra = {

@@ -540,6 +540,13 @@ textarea { resize: vertical; }
 .recipe-row .label { color: var(--text3); }
 .recipe-row .value { font-family: var(--mono); font-weight: 500; }
 
+.recipe-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 10px;
+}
+
 /* ─── REPORT ──────────────────────────────────────────────────── */
 .report-header {
   background: var(--surface);

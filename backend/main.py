@@ -138,6 +138,13 @@ async def update_concrete_recipe(record_id: int, data: ConcreteRecipeCreate):
     db.update_concrete_recipe(record_id, data)
     return {"message": "Beton reçetesi güncellendi"}
 
+@app.delete("/api/concrete-recipes/{record_id}", tags=["Beton Reçetesi"])
+async def delete_concrete_recipe(record_id: int):
+    deleted = db.delete_concrete_recipe(record_id)
+    if not deleted:
+        raise HTTPException(status_code=404, detail="Kayıt bulunamadı")
+    return {"message": "Beton reçetesi silindi"}
+
 # ─── HAFTALIK RAPOR ───────────────────────────────────────────────────────────
 @app.get("/api/reports/weekly", tags=["Raporlar"])
 async def get_weekly_report(week_start: Optional[str] = None):

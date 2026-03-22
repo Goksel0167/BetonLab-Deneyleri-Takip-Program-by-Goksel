@@ -184,7 +184,7 @@
     <!-- Beton Reçetesi -->
     <section id="page-recipes" class="page">
       <div class="page-actions">
-        <button class="btn btn-primary" onclick="openModal('modalRecipe')">+ Yeni Reçete</button>
+        <button class="btn btn-primary" onclick="openRecipeModalForCreate()">+ Yeni Reçete</button>
         <div class="filter-bar">
           <select id="recipeFilterClass" onchange="loadRecipeList()">
             <option value="">Tüm Sınıflar</option>
@@ -208,6 +208,7 @@
           <input type="date" id="reportWeekStart">
           <button class="btn btn-primary" onclick="generateReport()">Rapor Oluştur</button>
           <button class="btn btn-secondary" onclick="saveReport()">Kaydet</button>
+          <button class="btn btn-secondary" onclick="printWeeklyReport()">Yazdır</button>
         </div>
       </div>
       <div id="reportContainer">
@@ -392,7 +393,7 @@
 <div class="modal-overlay" id="modalRecipe">
   <div class="modal modal-lg">
     <div class="modal-header">
-      <h2>Beton Reçetesi Giriş</h2>
+      <h2 id="recipeModalTitle">Beton Reçetesi Giriş</h2>
       <button class="modal-close" onclick="closeModal('modalRecipe')">✕</button>
     </div>
     <div class="modal-body">
@@ -410,7 +411,18 @@
         </div>
         <div class="form-group">
           <label>Çimento Tipi</label>
-          <input type="text" id="rcCementType" placeholder="CEM I 42.5R">
+          <select id="rcCementType">
+            <option value="">Seçin…</option>
+            <option>CEM I 42,5 R</option>
+            <option>CEM I 52,5 R</option>
+            <option>CEM II/A-M 42,5 R</option>
+            <option>CEM I 52,5 R Süper Beyaz</option>
+            <option>CEM II/B-LL 32,5 R</option>
+            <option>CEM II/A-M (V-LL) 52,5 N</option>
+            <option>CEM I 42,5 R Superpower</option>
+            <option>CEM I 52,5 N</option>
+            <option>CEM II/A-M (P-L) 42,5 R</option>
+          </select>
         </div>
         <div class="form-group">
           <label>Çimento (kg/m³)</label>
@@ -423,8 +435,18 @@
         <div class="form-group">
           <label>Kıvam Sınıfı</label>
           <select id="rcConsistency">
-            <option>S1</option><option>S2</option><option selected>S3</option>
-            <option>S4</option><option>S5</option>
+            <option value="">Seçin…</option>
+            <option value="S1">S1 - Çok Düşük Çökme</option>
+            <option value="S2">S2 - Düşük Çökme</option>
+            <option value="S3" selected>S3 - Orta Çökme</option>
+            <option value="S4">S4 - Yüksek Çökme</option>
+            <option value="S5">S5 - Çok Yüksek Çökme</option>
+            <option value="F1">F1 - Düşük Yayılma</option>
+            <option value="F2">F2 - Orta Yayılma</option>
+            <option value="F3">F3 - Yüksek Yayılma</option>
+            <option value="F4">F4 - Çok Yüksek Yayılma</option>
+            <option value="F5">F5 - Kendiliğinden Yerleşen</option>
+            <option value="F6">F6 - Çok Akışkan</option>
           </select>
         </div>
       </div>
@@ -468,7 +490,30 @@
         </div>
         <div class="form-group">
           <label>Maruziyet Sınıfı</label>
-          <input type="text" id="rcExposure" placeholder="XC2">
+          <select id="rcExposure">
+            <option value="">Seçin…</option>
+            <option>X0</option>
+            <option>XC1</option>
+            <option>XC2</option>
+            <option>XC3</option>
+            <option>XC4</option>
+            <option>XD1</option>
+            <option>XD2</option>
+            <option>XD3</option>
+            <option>XS1</option>
+            <option>XS2</option>
+            <option>XS3</option>
+            <option>XF1</option>
+            <option>XF2</option>
+            <option>XF3</option>
+            <option>XF4</option>
+            <option>XA1</option>
+            <option>XA2</option>
+            <option>XA3</option>
+            <option>XM1</option>
+            <option>XM2</option>
+            <option>XM3</option>
+          </select>
         </div>
       </div>
 
@@ -479,7 +524,7 @@
     </div>
     <div class="modal-footer">
       <button class="btn btn-secondary" onclick="closeModal('modalRecipe')">İptal</button>
-      <button class="btn btn-primary" onclick="saveRecipe()">Kaydet</button>
+      <button class="btn btn-primary" id="recipeSaveBtn" onclick="saveRecipe()">Kaydet</button>
     </div>
   </div>
 </div>
