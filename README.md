@@ -2,7 +2,7 @@
 
 **TS EN 13515 ve TS EN 12620 standartlarına uygun** haftalık elek analizi ve kirlilik testi takip sistemi.
 
-> Geliştirici: Mehmet MUTLU — TeknoBeton Danışmanlık
+> Proje Sahibi ve Geliştirici: Göksel ÇAPKIN
 
 ---
 

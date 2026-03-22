@@ -118,7 +118,7 @@ html, body {
   width: fit-content;
 }
 
-.teknobeton { font-size: 11px; color: var(--text3); margin-top: 4px; }
+.brand-footer { font-size: 11px; color: var(--text3); margin-top: 4px; }
 
 /* ─── MAIN WRAPPER ──────────────────────────────────────────── */
 .main-wrapper {
