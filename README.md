@@ -152,6 +152,8 @@ Bu uygulama Progressive Web App (PWA) olarak kullanılabilir:
 
 MIT Lisansı — Ticari kullanım serbesttir.
 
+© 2025 **Göksel ÇAPKIN** — Tüm hakları saklıdır.
+
 ---
 
-*TeknoBeton Danışmanlık — Mehmet MUTLU*
+*Program Sahibi & Geliştirici: Göksel ÇAPKIN*
