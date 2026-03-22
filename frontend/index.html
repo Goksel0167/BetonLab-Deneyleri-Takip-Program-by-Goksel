@@ -184,7 +184,7 @@
     <!-- Beton Reçetesi -->
     <section id="page-recipes" class="page">
       <div class="page-actions">
-        <button class="btn btn-primary" onclick="openRecipeModalForCreate()">+ Yeni Reçete</button>
+        <button class="btn btn-primary" onclick="window.openRecipeModalForCreate ? openRecipeModalForCreate() : openModal('modalRecipe')">+ Yeni Reçete</button>
         <div class="filter-bar">
           <select id="recipeFilterClass" onchange="loadRecipeList()">
             <option value="">Tüm Sınıflar</option>
